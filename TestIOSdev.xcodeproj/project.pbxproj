@@ -33,6 +33,7 @@
 		BC8256072D5A852300B9DA9C /* Exceptions for "TestIOSdev" folder in "TestIOSdev" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info.plist,
 				Models/Token.swift,
 			);
 			target = BC8255D12D5A811000B9DA9C /* TestIOSdev */;
@@ -411,6 +412,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"TestIOSdev/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TestIOSdev/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -439,6 +441,7 @@
 				DEVELOPMENT_ASSET_PATHS = "\"TestIOSdev/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = TestIOSdev/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

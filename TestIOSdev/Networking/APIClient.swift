@@ -12,7 +12,7 @@ class APIClient {
     
     private let baseURL = "https://api.baubuddy.de"
     private let loginURL = "/index.php/login"
-    private let credentials = "QVBJX0V4cGxvcmVyOjEyMzQ1NmlzQUxhbWVQYXNz" // Base64 логина и пароля
+    private let credentials = "QVBJX0V4cGxvcmVyOjEyMzQ1NmlzQUxhbWVQYXNz"
 
     func fetchToken(completion: @escaping (String?) -> Void) {
         guard let url = URL(string: baseURL + loginURL) else { return }
@@ -27,7 +27,7 @@ class APIClient {
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
-                print("Ошибка при получении токена:", error?.localizedDescription ?? "Unknown error")
+                print("Error when receiving the token:", error?.localizedDescription ?? "Unknown error")
                 completion(nil)
                 return
             }
@@ -36,7 +36,7 @@ class APIClient {
                 let accessToken = tokenResponse.oauth.access_token
                 completion(accessToken)
             } catch {
-                print("Ошибка декодирования токена:", error)
+                print("Error parsing the token response:", error)
                 completion(nil)
             }
         }.resume()
@@ -52,21 +52,21 @@ class APIClient {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard let data = data, error == nil else {
-                print("Ошибка при получении задач:", error?.localizedDescription ?? "Unknown error")
+                print("Error when fetching tasks:", error?.localizedDescription ?? "Unknown error")
                 completion(nil)
                 return
             }
 
             // Печать необработанного ответа
             if let responseData = String(data: data, encoding: .utf8) {
-                print("Ответ от сервера:", responseData)
+                print("Server response:", responseData)
             }
 
             do {
                 let tasks = try JSONDecoder().decode([Task].self, from: data)
                 completion(tasks)
             } catch {
-                print("Ошибка декодирования задач:", error)
+                print("Error decoding tasks:", error)
                 completion(nil)
             }
         }.resume()

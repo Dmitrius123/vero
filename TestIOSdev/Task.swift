@@ -8,13 +8,13 @@
 import Foundation
 
 struct Task: Identifiable, Codable {
-    var id: String  // Используем уникальный идентификатор, например, task (можно использовать task как id)
+    var id: String  // task
     var title: String
     var description: String
     var colorCode: String
 
     enum CodingKeys: String, CodingKey {
-        case id = "task"         // Заменим id на task
+        case id = "task"
         case title
         case description
         case colorCode = "colorCode"
