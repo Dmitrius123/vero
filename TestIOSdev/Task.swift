@@ -7,16 +7,33 @@
 
 import Foundation
 
-struct Task: Identifiable, Codable {
-    var id: String  // task
+struct Task: Identifiable, Decodable, Encodable {
+    var id: String { task }
+    var task: String
     var title: String
     var description: String
-    var colorCode: String
-
+    var sort: String
+    var wageType: String
+    var BusinessUnitKey: String
+    var businessUnit: String
+    var parentTaskID: String
+    var preplanningBoardQuickSelect: String?
+    var colorCode: String?
+    var workingTime: String?
+    var isAvailableInTimeTrackingKioskMode: Bool
+    
     enum CodingKeys: String, CodingKey {
-        case id = "task"
+        case task
         case title
         case description
-        case colorCode = "colorCode"
+        case sort
+        case wageType
+        case BusinessUnitKey
+        case businessUnit
+        case parentTaskID
+        case preplanningBoardQuickSelect
+        case colorCode
+        case workingTime
+        case isAvailableInTimeTrackingKioskMode
     }
 }

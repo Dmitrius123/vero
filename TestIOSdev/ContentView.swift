@@ -7,20 +7,26 @@
 
 import SwiftUI
 import Foundation
+import Network
 
 struct ContentView: View {
-    @State private var tasks: [Task] = []
+    @State private var tasks: [LocalTask] = []  // Используем LocalTask
     @State private var searchText: String = ""
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
 
-    var filteredTasks: [Task] {
+    var filteredTasks: [LocalTask] {  // Используем LocalTask
         if searchText.isEmpty {
             return tasks
         } else {
             return tasks.filter { task in
                 task.title.lowercased().contains(searchText.lowercased()) ||
-                task.description.lowercased().contains(searchText.lowercased())
+                task.description.lowercased().contains(searchText.lowercased()) ||
+                task.task.lowercased().contains(searchText.lowercased()) ||
+                task.wageType.lowercased().contains(searchText.lowercased()) ||
+                task.BusinessUnitKey.lowercased().contains(searchText.lowercased()) ||
+                task.parentTaskID.lowercased().contains(searchText.lowercased()) ||
+                (task.colorCode?.lowercased().contains(searchText.lowercased()) ?? false)
             }
         }
     }
@@ -32,16 +38,35 @@ struct ContentView: View {
                 
                 List(filteredTasks) { task in
                     HStack {
-                        Color(hex: task.colorCode)
-                            .frame(width: 20, height: 20)
-                            .cornerRadius(4)
-
+                        if let colorCode = task.colorCode, !colorCode.isEmpty {
+                            Color(hex: colorCode)
+                                .frame(width: 20, height: 20)
+                                .cornerRadius(4)
+                        } else { // if colorCode is empty
+                            ZStack {
+                                 RoundedRectangle(cornerRadius: 4)
+                                     .stroke(Color.gray, lineWidth: 1)
+                                     .frame(width: 20, height: 20)
+                                
+                                Rectangle()
+                                    .frame(width: 20, height: 2)
+                                    .foregroundColor(.red)
+                                    .rotationEffect(.degrees(-45))
+                            }
+                        }
+                        
                         VStack(alignment: .leading) {
                             Text(task.title)
                                 .font(.headline)
                             Text(task.description)
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
+                            Text(task.wageType)
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                            Text(task.BusinessUnitKey)
+                                .font(.caption)
+                                .foregroundColor(.green)
                         }
                     }
                 }
@@ -57,10 +82,10 @@ struct ContentView: View {
                     }
                 )
                 .onChange(of: scannedCode) {
-                    if let newValue = scannedCode {
-                        searchText = newValue
-                    }
-                }
+                                    if let newValue = scannedCode {
+                                        searchText = newValue
+                                    }
+                                }
                 .sheet(isPresented: $isShowingScanner) {
                     QRCodeScannerView(scannedCode: $scannedCode)
                 }
@@ -73,17 +98,92 @@ struct ContentView: View {
     }
 
     func fetchTasks() {
-        APIClient.shared.fetchToken { token in
-            if let token = token {
-                APIClient.shared.fetchTasks(token: token) { tasks in
-                    DispatchQueue.main.async {
-                        self.tasks = tasks ?? []
+        isInternetAvailable { isConnected in
+            if isConnected {
+                // Загрузка данных из сети
+                APIClient.shared.fetchToken { token in
+                    if let token = token {
+                        APIClient.shared.fetchTasks(token: token) { tasks in
+                            DispatchQueue.main.async {
+                                self.tasks = tasks?.map { LocalTask(task: $0.task, title: $0.title, description: $0.description, sort: $0.sort, wageType: $0.wageType, BusinessUnitKey: $0.BusinessUnitKey, businessUnit: $0.businessUnit, parentTaskID: $0.parentTaskID, preplanningBoardQuickSelect: $0.preplanningBoardQuickSelect, colorCode: $0.colorCode, workingTime: $0.workingTime, isAvailableInTimeTrackingKioskMode: $0.isAvailableInTimeTrackingKioskMode) } ?? []
+                                // Сохранение данных в локальное хранилище
+                                saveTasksToLocal(self.tasks)
+                            }
+                        }
+                    } else {
+                        print("Token receipt error")
                     }
                 }
             } else {
-                print("Token receipt error")
+                // Загрузка данных из локального хранилища
+                if let savedTasks = loadTasksFromLocal() {
+                    DispatchQueue.main.async {
+                        self.tasks = savedTasks
+                    }
+                } else {
+                    print("No internet and no local data")
+                }
             }
         }
+    }
+
+    func saveTasksToLocal(_ tasks: [LocalTask]) {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(tasks) {
+            UserDefaults.standard.set(encoded, forKey: "tasks")
+        }
+    }
+
+    func loadTasksFromLocal() -> [LocalTask]? {
+        if let savedData = UserDefaults.standard.object(forKey: "tasks") as? Data {
+            let decoder = JSONDecoder()
+            if let loadedTasks = try? decoder.decode([LocalTask].self, from: savedData) {
+                return loadedTasks
+            }
+        }
+        return nil
+    }
+
+    func isInternetAvailable(completion: @escaping (Bool) -> Void) {
+        let monitor = NWPathMonitor()
+        monitor.start(queue: DispatchQueue.global())
+        monitor.pathUpdateHandler = { path in
+            DispatchQueue.main.async {
+                completion(path.status == .satisfied)
+            }
+        }
+    }
+}
+
+// LocalTask - вспомогательная структура для избежания конфликта с основной моделью Task
+struct LocalTask: Identifiable, Codable {
+    var id: String { task }
+    var task: String
+    var title: String
+    var description: String
+    var sort: String
+    var wageType: String
+    var BusinessUnitKey: String
+    var businessUnit: String
+    var parentTaskID: String
+    var preplanningBoardQuickSelect: String?
+    var colorCode: String?
+    var workingTime: String?
+    var isAvailableInTimeTrackingKioskMode: Bool
+    
+    enum CodingKeys: String, CodingKey {
+        case task
+        case title
+        case description
+        case sort
+        case wageType
+        case BusinessUnitKey
+        case businessUnit
+        case parentTaskID
+        case preplanningBoardQuickSelect
+        case colorCode
+        case workingTime
+        case isAvailableInTimeTrackingKioskMode
     }
 }
 
