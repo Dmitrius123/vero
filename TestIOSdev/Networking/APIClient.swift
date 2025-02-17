@@ -57,7 +57,6 @@ class APIClient {
                 return
             }
 
-            // Печать необработанного ответа
             if let responseData = String(data: data, encoding: .utf8) {
                 print("Server response:", responseData)
             }

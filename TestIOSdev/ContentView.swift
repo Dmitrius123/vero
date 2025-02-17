@@ -10,12 +10,12 @@ import Foundation
 import Network
 
 struct ContentView: View {
-    @State private var tasks: [LocalTask] = []  // Используем LocalTask
+    @State private var tasks: [LocalTask] = []
     @State private var searchText: String = ""
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
 
-    var filteredTasks: [LocalTask] {  // Используем LocalTask
+    var filteredTasks: [LocalTask] {
         if searchText.isEmpty {
             return tasks
         } else {
@@ -121,12 +121,11 @@ struct ContentView: View {
                                         isAvailableInTimeTrackingKioskMode: $0.isAvailableInTimeTrackingKioskMode
                                     )
                                 } ?? []
-                                // Сохранение данных в локальное хранилище
                                 self.saveTasksToLocal(self.tasks)
                             }
                         }
                     } else {
-                        print("Не удалось получить токен")
+                        print("Didn't get token")
                     }
                 }
             } else {
@@ -168,7 +167,6 @@ struct ContentView: View {
     }
 }
 
-// LocalTask - вспомогательная структура для избежания конфликта с основной моделью Task
 struct LocalTask: Identifiable, Codable {
     var id: String { task }
     var task: String
