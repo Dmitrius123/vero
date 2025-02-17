@@ -14,7 +14,7 @@ struct Task: Identifiable, Decodable, Encodable {
     var description: String
     var sort: String
     var wageType: String
-    var BusinessUnitKey: String
+    var BusinessUnitKey: String?
     var businessUnit: String
     var parentTaskID: String
     var preplanningBoardQuickSelect: String?
@@ -36,4 +36,5 @@ struct Task: Identifiable, Decodable, Encodable {
         case workingTime
         case isAvailableInTimeTrackingKioskMode
     }
+    
 }
