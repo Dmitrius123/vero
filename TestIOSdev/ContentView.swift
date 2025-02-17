@@ -10,12 +10,12 @@ import Foundation
 import Network
 
 struct ContentView: View {
-    @State private var tasks: [LocalTask] = []  // Используем LocalTask
+    @State private var tasks: [LocalTask] = []
     @State private var searchText: String = ""
     @State private var isShowingScanner = false
     @State private var scannedCode: String?
 
-    var filteredTasks: [LocalTask] {  // Используем LocalTask
+    var filteredTasks: [LocalTask] {
         if searchText.isEmpty {
             return tasks
         } else {
@@ -42,7 +42,7 @@ struct ContentView: View {
                             Color(hex: colorCode)
                                 .frame(width: 20, height: 20)
                                 .cornerRadius(4)
-                        } else { // if colorCode is empty
+                        } else {
                             ZStack {
                                  RoundedRectangle(cornerRadius: 4)
                                      .stroke(Color.gray, lineWidth: 1)
@@ -82,10 +82,10 @@ struct ContentView: View {
                     }
                 )
                 .onChange(of: scannedCode) {
-                                    if let newValue = scannedCode {
-                                        searchText = newValue
-                                    }
-                                }
+                    if let newValue = scannedCode {
+                        searchText = newValue
+                    }
+                }
                 .sheet(isPresented: $isShowingScanner) {
                     QRCodeScannerView(scannedCode: $scannedCode)
                 }
@@ -105,22 +105,34 @@ struct ContentView: View {
                     if let token = token {
                         APIClient.shared.fetchTasks(token: token) { tasks in
                             DispatchQueue.main.async {
-                                self.tasks = tasks?.map { LocalTask(task: $0.task, title: $0.title, description: $0.description, sort: $0.sort, wageType: $0.wageType, BusinessUnitKey: $0.BusinessUnitKey, businessUnit: $0.businessUnit, parentTaskID: $0.parentTaskID, preplanningBoardQuickSelect: $0.preplanningBoardQuickSelect, colorCode: $0.colorCode, workingTime: $0.workingTime, isAvailableInTimeTrackingKioskMode: $0.isAvailableInTimeTrackingKioskMode) } ?? []
-                                // Сохранение данных в локальное хранилище
-                                saveTasksToLocal(self.tasks)
+                                self.tasks = tasks?.map {
+                                    LocalTask(
+                                        task: $0.task,
+                                        title: $0.title,
+                                        description: $0.description,
+                                        sort: $0.sort,
+                                        wageType: $0.wageType,
+                                        BusinessUnitKey: $0.BusinessUnitKey ?? "No Key",
+                                        businessUnit: $0.businessUnit,
+                                        parentTaskID: $0.parentTaskID,
+                                        preplanningBoardQuickSelect: $0.preplanningBoardQuickSelect,
+                                        colorCode: $0.colorCode,
+                                        workingTime: $0.workingTime,
+                                        isAvailableInTimeTrackingKioskMode: $0.isAvailableInTimeTrackingKioskMode
+                                    )
+                                } ?? []
+                                self.saveTasksToLocal(self.tasks)
                             }
                         }
                     } else {
-                        print("Token receipt error")
+                        print("Didn't get token")
                     }
                 }
             } else {
                 // Загрузка данных из локального хранилища
-                if let savedTasks = loadTasksFromLocal() {
-                    DispatchQueue.main.async {
-                        self.tasks = savedTasks
-                    }
-                } else {
+                self.tasks = loadTasksFromLocal() ?? []
+
+                if self.tasks.isEmpty {
                     print("No internet and no local data")
                 }
             }
@@ -155,7 +167,6 @@ struct ContentView: View {
     }
 }
 
-// LocalTask - вспомогательная структура для избежания конфликта с основной моделью Task
 struct LocalTask: Identifiable, Codable {
     var id: String { task }
     var task: String
@@ -170,21 +181,6 @@ struct LocalTask: Identifiable, Codable {
     var colorCode: String?
     var workingTime: String?
     var isAvailableInTimeTrackingKioskMode: Bool
-    
-    enum CodingKeys: String, CodingKey {
-        case task
-        case title
-        case description
-        case sort
-        case wageType
-        case BusinessUnitKey
-        case businessUnit
-        case parentTaskID
-        case preplanningBoardQuickSelect
-        case colorCode
-        case workingTime
-        case isAvailableInTimeTrackingKioskMode
-    }
 }
 
 // Search bar
